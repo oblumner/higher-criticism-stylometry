@@ -47,12 +47,6 @@ https://arxiv.org/pdf/math/0410072
     pip install "git+https://github.com/oblumner/higher-criticism-stylometry.git#egg=hc_stylometry[display]"
     ```
 
-4.  **Download spaCy Model.** The package uses a spaCy model for linguistic preprocessing. You'll need to download the default model the first time you use it:
-
-    ```bash
-    python -m spacy download en_core_web_sm
-    ```
-
 ## Quick Start: How to Use the Code
 
 Here is a simple example of how to use the `analyze_and_display` function to compare two lists of documents and generate a full report.
