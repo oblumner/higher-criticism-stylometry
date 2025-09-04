@@ -1,0 +1,42 @@
+# Ignore Virtual Environment directory
+penv/
+
+# Python cache & compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+downloads/
+wheels/
+sdist/
+pip-wheel-metadata/
+
+# Test artifacts
+.pytest_cache/
+.coverage*
+htmlcov/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor config (Optional - uncomment if needed)
+# .vscode/
+# .idea/
+
+# Ignore the directory containing large, local-only data files
+local_data/
+
+# Ignore the directory for private, exploratory notebooks
+notebook_workspace/
+
+# Jupyter Notebook cache
+.ipynb_checkpoints/
+
+# VS Code virtual documents
+.virtual_documents/

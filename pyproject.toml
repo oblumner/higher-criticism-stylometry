@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hc_stylometry"
+version = "0.1.0"
+requires-python = ">=3.8"
+authors = [
+  {name = "Ophira Blumner", email = "ophirablumner@gmail.com" },
+  {name = "Alon Kipnis", email = "alon.kipnis@runi.ac.il"}
+]
+maintainers = [
+    {name = "Ophira Blumner", email = "ophirablumner@gmail.com" }
+]
+description = "A package using the Higher Criticism statistic to find discriminating words in two texts." 
+readme = "README.md"
+
+#license = ""
+license-files = ["LICENSE"]
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Text Processing :: Linguistic",
+    "Development Status :: 3 - Alpha",
+    #"License :: OSI Approved :: MIT License"
+]
+keywords = ["higher criticism", "stylometry", "text analysis", "nlp", "llm", "discriminating words"]
+dependencies = [
+    "pandas",   
+    "numpy",
+    "spacy<3.8",          
+    "scikit-learn",
+    "scipy",
+    "en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl"
+]
+
+[project.optional-dependencies]
+display = ["ipython", "matplotlib", "seaborn"]
+#Users who want the enhanced display can then install your package with the extra: 
+#pip install hc_stylometry[display]
+
+[project.urls]
+#add github when ready
+
