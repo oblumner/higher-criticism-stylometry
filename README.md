@@ -38,12 +38,6 @@ https://arxiv.org/pdf/math/0410072
 2.  **Install from GitHub.** You can install the package directly from this GitHub repository.
 
     ```bash
-    pip install git+https://github.com/oblumner/higher-criticism-stylometry.git
-    ```
-
-3.  **Install Optional Dependencies (for Display).** For the full report generation with plots and nicely formatted tables, install the `display` extras:
-
-    ```bash
     pip install "git+https://github.com/oblumner/higher-criticism-stylometry.git#egg=hc_stylometry[display]"
     ```
 
