@@ -51,25 +51,30 @@ def higher_criticism(
     hc_score, pstar = hctest.HC()
 
     significant_words_data = []
+    all_words_data = []
 
     for i, word in enumerate(sorted_words):
-        if pvals[i] < pstar:
-            freq1_percent = (text1_freq.get(word, 0) / len(text1_split)) * 100 if len(text1_split) > 0 else 0
-            freq2_percent = (text2_freq.get(word, 0) / len(text2_split)) * 100 if len(text2_split) > 0 else 0
+        freq1_percent = (text1_freq.get(word, 0) / len(text1_split)) * 100 if len(text1_split) > 0 else 0
+        freq2_percent = (text2_freq.get(word, 0) / len(text2_split)) * 100 if len(text2_split) > 0 else 0
 
-            more_freq = 'tie'
-            if freq1_percent > freq2_percent:
-                more_freq = corpus1_name
-            elif freq2_percent > freq1_percent:
-                more_freq = corpus2_name
+        more_freq = 'tie'
+        if freq1_percent > freq2_percent:
+            more_freq = corpus1_name
+        elif freq2_percent > freq1_percent:
+            more_freq = corpus2_name
             
-            significant_words_data.append({
+        word_record = {
                 'word': word,
                 'p_value': pvals[i],
                 f"{corpus1_name}_frequency (%)": freq1_percent,
                 f"{corpus2_name}_frequency (%)": freq2_percent,
                 'more_frequent_in': more_freq
-            })
+        }
+
+        all_words_data.append(word_record)
+
+        if pvals[i] < pstar:
+            significant_words_data.append(word_record)
 
     df = pd.DataFrame(significant_words_data)
     if not df.empty:
@@ -77,4 +82,8 @@ def higher_criticism(
     else:
         df = pd.DataFrame(columns=['word', 'p_value', f"{corpus1_name}_frequency (%)", f"{corpus2_name}_frequency (%)", 'more_frequent_in'])
 
-    return hc_score, df
+    all_df = pd.DataFrame(all_words_data)
+    if not all_df.empty:
+        all_df.sort_values(by='p_value', ascending=True, inplace=True)
+
+    return hc_score, df, all_df

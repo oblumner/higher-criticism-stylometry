@@ -1,14 +1,14 @@
 import re
 import spacy
-from typing import List
+from typing import List, Optional
 
-def filter_and_clean_text(text: str, nlp: spacy.language.Language, pos_tags: List[str]) -> str:
+def filter_and_clean_text(text: str, nlp: spacy.language.Language, pos_tags: Optional[List[str]] = None) -> str:
     """
     Filters text based on POS tags, removes entities, and cleans the text.
     Args:
         text (str): The input text string.
         nlp (spacy.language.Language): The loaded spaCy NLP object.
-        pos_tags (List[str]): A list of POS tags to keep (e.g., ['NOUN', 'VERB']).
+        pos_tags (List[str]): A list of POS tags to keep (e.g., ['NOUN', 'VERB']), or None.
     Returns:
         str: The cleaned and filtered text as a single string.
     """
@@ -23,7 +23,7 @@ def filter_and_clean_text(text: str, nlp: spacy.language.Language, pos_tags: Lis
     filtered_words = [
         token.text
         for token in doc
-        if token.pos_ in pos_tags
+        if (pos_tags is None or token.pos_ in pos_tags)
         and token.ent_type_ == ""
         and not token.is_punct
         and not token.is_space

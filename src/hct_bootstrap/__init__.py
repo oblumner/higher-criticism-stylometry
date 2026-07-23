@@ -1,4 +1,4 @@
-from .discriminator import discriminate, analyze_and_display
+from .word_selector import discriminate, analyze_and_display
 
 __version__ = "0.1.0"
 

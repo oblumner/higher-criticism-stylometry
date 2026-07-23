@@ -62,7 +62,7 @@ def bootstrap_docs(
         if not sample1_text.strip() or not sample2_text.strip():
             continue
 
-        hc_score, hc_df = higher_criticism(sample1_text, col_1_name, sample2_text, col_2_name)
+        hc_score, hc_df, _ = higher_criticism(sample1_text, col_1_name, sample2_text, col_2_name)
         hc_results_list.append(hc_df)
         hc_scores_list.append(hc_score)
     
@@ -131,7 +131,7 @@ def paired_bootstrap_docs(
         if not sample1_text.strip() or not sample2_text.strip():
             continue
 
-        hc_score, hc_df = higher_criticism(sample1_text, col_1_name, sample2_text, col_2_name)
+        hc_score, hc_df, _ = higher_criticism(sample1_text, col_1_name, sample2_text, col_2_name)
         hc_results_list.append(hc_df)
         hc_scores_list.append(hc_score)
 
