@@ -57,9 +57,9 @@ HC examines the ordered sequence of all p-values and finds the threshold where t
 
 The procedure has three moving parts, and two of them are the arguments you will most often set.
 
-**Bootstrap stabilization.** At step *n*, the package has drawn *n* bootstrap resamples of the two corpora and run HC thresholding on each. A word counts as surviving only if it was selected in **all** *n* runs. The surviving count Ñ(n) therefore only shrinks as *n* grows.
+**Bootstrap stabilization.** At step *n*, the package has drawn *n* bootstrap resamples of the two corpora and run HC thresholding on each. A word counts as surviving only if it was selected in **all** *n* runs. The surviving count N̂(n) therefore only shrinks as *n* grows.
 
-**The null comparison.** In parallel, the same procedure runs on a comparison where the two sides are known to come from the same source, so every surviving word is by construction a false discovery. Ñ₀(n) is that count, taken as the maximum across the available null comparisons (conservative). Set it with `null_method`:
+**The null comparison.** In parallel, the same procedure runs on a comparison where the two sides are known to come from the same source, so every surviving word is by construction a false discovery. N̂₀(n) is that count, taken as the maximum across the available null comparisons (conservative). Set it with `null_method`:
 
 | `null_method` | Null construction |
 | --- | --- |
@@ -71,8 +71,8 @@ The procedure has three moving parts, and two of them are the arguments you will
 
 | `q` | Rule |
 | --- | --- |
-| `None` (default) | **Strict**: stop at the first *n* where no null word survives (Ñ₀(n) = 0). |
-| a float in (0, 1] | **FDR**: stop at the first *n* where FDP⁺(n) = (1 + Ñ₀(n)) / max(Ñ(n), 1) falls to `q`. The selected set then has false-discovery rate at most `q`. |
+| `None` (default) | **Strict**: stop at the first *n* where no null word survives (N̂₀(n) = 0). |
+| a float in (0, 1] | **FDR**: stop at the first *n* where FDP⁺(n) = (1 + N̂₀(n)) / max(N̂(n), 1) falls to `q`. The selected set then has false-discovery rate at most `q`. |
 
 The final selection is the set of words surviving all *n* iterations, intersected with the words selected by a single HC run on the full corpora.
 
@@ -198,7 +198,7 @@ Selected words with HCT p-values:
 === End of Report ===
 ```
 
-A plot of Ñ(n), Ñ₀(n), and FDP⁺(n) against *n* is displayed after the report when matplotlib is installed.
+A plot of N̂(n), N̂₀(n), and FDP⁺(n) against *n* is displayed after the report when matplotlib is installed.
 
 ### Reading the report
 
@@ -237,7 +237,7 @@ The package exposes two functions. They take identical arguments; `analyze_and_d
 
 **Output**
 
-* **`verbose`** (`bool`, default `True`): print the per-iteration trace of Ñ(n), Ñ₀(n), and FDP⁺(n).
+* **`verbose`** (`bool`, default `True`): print the per-iteration trace of N̂(n), N̂₀(n), and FDP⁺(n).
 
 #### Return value
 
@@ -253,7 +253,7 @@ Both functions return a dictionary:
 | `q`, `null_method` | The settings used, echoed back. |
 | `iterations_run` | Number of iterations actually run. |
 | `empty_reason` | Explanation if the selection came back empty, otherwise `None`. |
-| `fdp_curve` | List of `(n, Ñ(n), Ñ₀(n), FDP⁺(n))` tuples — the data behind the plot. |
+| `fdp_curve` | List of `(n, N̂(n), N̂₀(n), FDP⁺(n))` tuples — the data behind the plot. |
 | `full_data_hc_score` | HC score from the single run on the full corpora. |
 | `full_data_results_df` | Words selected by that single full-corpus run. |
 | `test_survivors_df` | Surviving test words at the stopping iteration. |
