@@ -10,7 +10,7 @@ def higher_criticism(
     corpus1_name: str, 
     text2: str, 
     corpus2_name: str
-) -> Tuple[float, pd.DataFrame]:
+) -> Tuple[float, pd.DataFrame, pd.DataFrame]:
     """
     Performs Higher Criticism analysis on two concatenated text corpora.
     Args: 
@@ -19,19 +19,28 @@ def higher_criticism(
         text2 (str): The second corpus as a single string.
         corpus2_name: Name of second corpus.
     Returns:
-        Tuple[float, pd.DataFrame]: The HC score and a DataFrame of discriminating words.
+        Tuple[float, pd.DataFrame, pd.DataFrame]: The HC score, a DataFrame of discriminating words, and a
+        DataFrame of all words with associated binomial allocation p-values.
     """
+
+    columns = [
+        'word',
+        'p_value',
+        f"{corpus1_name}_frequency (%)",
+        f"{corpus2_name}_frequency (%)",
+        'more_frequent_in',
+    ]
+
     if not text1.strip() or not text2.strip():
         print("Warning: One or both input texts to higher_criticism are empty.")
-        return 0.0, pd.DataFrame(columns=['word', 'p-value', f"{corpus1_name}_frequency (%)", f"{corpus2_name}_frequency (%)", 'more_frequent_in'])
-
+        return 0.0, pd.DataFrame(columns=columns), pd.DataFrame(columns=columns)
     
     text1_split = text1.split()
     text2_split = text2.split()
 
     if not text1_split or not text2_split:
         print("Warning: One or both input texts became empty after splitting.")
-        return 0.0, pd.DataFrame(columns=['word', 'p-value', f"{corpus1_name}_frequency (%)", f"{corpus2_name}_frequency (%)", 'more_frequent_in'])   
+        return 0.0, pd.DataFrame(columns=columns), pd.DataFrame(columns=columns)   
 
     text1_freq = Counter(text1_split)
     text2_freq = Counter(text2_split)
@@ -80,10 +89,12 @@ def higher_criticism(
     if not df.empty:
         df.sort_values(by='p_value', ascending=True, inplace=True)
     else:
-        df = pd.DataFrame(columns=['word', 'p_value', f"{corpus1_name}_frequency (%)", f"{corpus2_name}_frequency (%)", 'more_frequent_in'])
+        df = pd.DataFrame(columns=columns)
 
     all_df = pd.DataFrame(all_words_data)
     if not all_df.empty:
         all_df.sort_values(by='p_value', ascending=True, inplace=True)
+    else:
+        all_df = pd.DataFrame(columns=columns)
 
     return hc_score, df, all_df

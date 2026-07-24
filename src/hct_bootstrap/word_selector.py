@@ -1,9 +1,6 @@
-import random
 import spacy
-import numpy as np
 import pandas as pd
-from collections import Counter
-from typing import List, Dict, Tuple, Optional, Any
+from typing import List, Dict, Tuple, Optional, Any, Union
 
 from .preprocessing import filter_and_clean_text
 from .utils import load_custom_nlp
@@ -20,7 +17,6 @@ except ImportError:
 _HAS_PLOTTING = False
 try:
     import matplotlib.pyplot as plt
-    import seaborn as sns
     _HAS_PLOTTING = True
 except ImportError:
     pass
@@ -74,12 +70,13 @@ def discriminate(
     null_method: str = 'split',
     null_corpus1_docs: Optional[List[str]] = None,
     null_corpus2_docs: Optional[List[str]] = None,
-    null_coupled=None,
+    null_coupled: Optional[Union[bool, Tuple[bool, bool]]] = None,
     nlp: Optional[spacy.language.Language] = None,
     pos_tags: Optional[List[str]] = None,
     max_t: int = 1000,
     random_seed: int = 42,
     default_spacy_model: str = "en_core_web_sm",
+    verbose: bool = True
 ) -> Dict[str, Any]:
     """
     Identify stable discriminating words between two text corpora using
@@ -92,17 +89,14 @@ def discriminate(
                           (N0(n) == 0).
         * q is a float -> FDR rule:    stop when (1 + N0(n)) / max(N(n), 1) <= q.
 
-    The null comparison is constructed automatically from the input corpora
-    (the user does not supply a null), via one of two methods:
+    The null comparison is constructed via one of three methods:
 
         * null_method='split'    -> split each input corpus into two halves.
         * null_method='resample' -> draw two same-size with-replacement
                                      resamples from each input corpus.
+        * null_method='user'     -> the user inputs a corresponding null for each input corpus
 
-    One null is built per input corpus (two total); their survival curves are
-    combined by pointwise maximum (conservative). The null comparison is always
-    run with UNCOUPLED bootstrapping, since the null pieces share no pairing.
-
+    
     The final selection is the set of test words that survived all iterations
     up to the stopping point, intersected with the single-run HCT candidate set
     (so BS-HCT is always a subset of HCT).
@@ -111,35 +105,47 @@ def discriminate(
         corpus1_docs, corpus2_docs: lists of document strings.
         corpus1_name, corpus2_name: corpus labels.
         coupled: True if corpus1_docs[i] is prompt-paired with corpus2_docs[i].
-                 Affects only the TEST bootstrap; the null is always uncoupled.
+                 Affects only the TEST bootstrap. 
+                 The 'split' / 'resample' nulls are always uncoupled; 
+                 a user-supplied null follows null_coupled  
         q: None for the strict (no-null-survivors) rule, or a non-negative
            float for the FDR rule.
-        null_method: 'split' or 'resample'.
+        null_method: 'split' / 'resample' / 'user'
+            if null_method: 'user' is used, the following should be added:
+                null_corpus1_docs: list of document strings
+                null_corpus2_docs: list of document strings
+                null_coupled: a single boolean if both null comparisons are either True / False, 
+                              or a tuple of booleans if one is True and one is False. 
         nlp: pre-loaded spaCy model; if None, default_spacy_model is loaded.
         pos_tags: POS tags to retain, or None (default) to keep all POS.
         max_t: safety cap on the number of independent experiments (t).
         random_seed: seed for reproducibility.
         default_spacy_model: spaCy model name to load if nlp is None.
+        verbose: print a per-iteration trace of N(n), N0(n), FDP+(n)
 
     Returns:
         dict with:
             selected_words      : sorted list of stable discriminating words
-            n_rule              : iteration at which the rule fired (or None)
+            selected_words_df   : those words with 'p_value' and 'more_frequent_in', ascending by p-value
+            n_rule, t_stop      : iteration at which the rule fired (or None);
+                                  both keys hold the same value
+            fdp_at_stop         : FDP+(n) at the stopping iteration (or None)
             rule                : 'strict' or 'fdr'
             q, null_method      : echoed settings
             iterations_run      : number of iterations actually run
             empty_reason        : explanation if the selection is empty, else None
+            fdp_curve           : list of (n, N(n), N0(n), FDP+(n)) tuples
             full_data_hc_score  : HC score on the full corpora
             full_data_results_df: HCT-selected words on the full corpora
-            test_survival_df    : test survival tally (['word','count'])
-            null_survival_dfs   : per-null survival tallies
+            test_survivors_df   : surviving test words at the stop (['word'])
+            null_survivors_dfs  : per-null surviving words (list of ['word'])
             cleaned_corpus1, cleaned_corpus2: cleaned text (joined), for info
     """
     # --- Load spaCy ---
     if nlp is None:
         try:
             active_nlp = load_custom_nlp(default_spacy_model)
-        except (OSError, IOError, Exception) as e:
+        except Exception as e:
             raise RuntimeError(
                 f"Failed to load/customize spaCy model '{default_spacy_model}'"
             ) from e
@@ -155,6 +161,10 @@ def discriminate(
         return {
             "selected_words": [],
             "n_rule": None,
+            "t_stop": None,
+            "fdp_at_stop": None,
+            "fdp_curve": [],
+            "selected_words_df": pd.DataFrame(columns=['word', 'p_value', 'more_frequent_in']),
             "rule": 'strict' if q is None else 'fdr',
             "q": q,
             "null_method": null_method,
@@ -219,6 +229,7 @@ def discriminate(
         user_null_pairs=user_null_pairs,
         max_t=max_t,
         random_seed=random_seed,
+        verbose=verbose
     )
 
     # --- Attach full-corpus HCT info and cleaned text ---
@@ -255,12 +266,13 @@ def analyze_and_display(
     null_method: str = 'split',
     null_corpus1_docs: Optional[List[str]] = None,
     null_corpus2_docs: Optional[List[str]] = None,
-    null_coupled=None,
+    null_coupled: Optional[Union[bool, Tuple[bool, bool]]] = None,
     nlp: Optional[spacy.language.Language] = None,
     default_spacy_model: str = 'en_core_web_sm',
     pos_tags: Optional[List[str]] = None,
     max_t: int = 1000,
     random_seed: int = 42,
+    verbose: bool = True
 ) -> Dict[str, Any]:
     """
     Run the null-calibrated BS-HCT analysis and print a summary report.
@@ -292,6 +304,7 @@ def analyze_and_display(
             nlp=nlp, default_spacy_model=default_spacy_model,
             pos_tags=pos_tags, max_t=max_t,
             random_seed=random_seed,
+            verbose=verbose
         )
     except RuntimeError as e:
         print(f"Analysis could not be completed: {e}")

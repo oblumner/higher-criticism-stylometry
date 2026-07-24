@@ -1,5 +1,4 @@
 import random
-import numpy as np
 import pandas as pd
 from typing import List, Dict, Tuple, Optional, Any
 from sklearn.utils import resample
@@ -110,7 +109,7 @@ def discriminate_until_rule(
     test_docs_b, name_b,
     coupled,
     hct_words,
-    q: Optional[float] = 0.05,
+    q: Optional[float] = None,
     null_method: str = 'split',
     user_null_pairs=None,
     max_t: int = 1000,
@@ -124,8 +123,8 @@ def discriminate_until_rule(
       * the test survivors are the words selected by HCT in ALL of the first n
         draws (intersection of draws 1..n) -> count N(n);
       * the same cumulative intersection is maintained for each within-corpus
-        null (always uncoupled), and N0(n) is the pointwise maximum across
-        nulls;
+        null (uncoupled for split/resample; per null_coupled for user-supplied nulls), 
+        and N0(n) is the pointwise maximum across nulls;
       * FDP+(n) = (1 + N0(n)) / max(N(n), 1).
 
     Because step n reuses draws 1..n-1 and adds one new draw, both N(n) and
